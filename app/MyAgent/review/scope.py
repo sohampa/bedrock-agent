@@ -1,7 +1,8 @@
 import re
 from typing import Any
 
-DENIAL_MESSAGE = """I'm a **security code review** agent only. I can review diffs and pull requests for security issues (vulnerabilities, auth, secrets, injection, unsafe APIs, etc.).
+DENIAL_MESSAGE = """I'm a **security code review** agent only. I can review diffs and pull
+requests for security issues (vulnerabilities, auth, secrets, injection, unsafe APIs, etc.).
 
 I can't help with general chat, non-security coding questions, or tasks outside security review.
 

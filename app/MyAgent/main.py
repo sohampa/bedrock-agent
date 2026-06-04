@@ -1,9 +1,10 @@
 from typing import Any
 
-from strands import Agent
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
-from model.load import load_model
+from strands import Agent
+
 from mcp_client.client import get_streamable_http_mcp_client
+from model.load import load_model
 from review.payload import build_user_message, parse_review_payload
 from review.prompts import CODE_REVIEW_SYSTEM_PROMPT
 from review.scope import is_in_scope

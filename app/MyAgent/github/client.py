@@ -33,7 +33,7 @@ def _request(method: str, url: str, body: dict[str, Any] | None = None) -> Any:
 
     req = urllib.request.Request(url, data=data, headers=headers, method=method)
     try:
-        with urllib.request.urlopen(req, timeout=60) as resp:
+        with urllib.request.urlopen(req, timeout=60) as resp:  # nosec B310
             raw = resp.read().decode("utf-8")
             return json.loads(raw) if raw else {}
     except urllib.error.HTTPError as e:
@@ -56,7 +56,7 @@ def fetch_pr_diff(owner: str, repo: str, pr_number: int) -> str:
     }
     req = urllib.request.Request(diff_url, headers=headers, method="GET")
     try:
-        with urllib.request.urlopen(req, timeout=120) as resp:
+        with urllib.request.urlopen(req, timeout=120) as resp:  # nosec B310
             return resp.read().decode("utf-8", errors="replace")
     except urllib.error.HTTPError as e:
         detail = e.read().decode("utf-8", errors="replace")
