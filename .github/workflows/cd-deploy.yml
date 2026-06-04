@@ -1,0 +1,54 @@
+# Stage 3 — CD: promote to staging or prod (manual)
+# Same account + us-east-1. Run after dev is healthy.
+#
+# GitHub → Settings → Environments → create "staging" and "production" with reviewers.
+
+name: CD — Promote staging / prod
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Deployment target
+        required: true
+        type: choice
+        options:
+          - staging
+          - prod
+
+env:
+  AWS_REGION: us-east-1
+  UV_LINK_MODE: copy
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy to ${{ inputs.target }} (us-east-1)
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.target == 'prod' && 'production' || 'staging' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "20"
+
+      - run: npm install -g @aws/agentcore
+
+      - name: Validate config
+        run: agentcore validate
+
+      - name: Deploy AgentCore
+        run: agentcore deploy --target ${{ inputs.target }}
+
+      - name: Deployment status
+        run: agentcore status --target ${{ inputs.target }}

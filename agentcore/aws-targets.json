@@ -1,1 +1,20 @@
-[]
+[
+  {
+    "name": "dev",
+    "description": "Development — auto-deploy from main after CI passes",
+    "account": "543816070942",
+    "region": "us-east-1"
+  },
+  {
+    "name": "staging",
+    "description": "Staging — requires GitHub environment approval",
+    "account": "543816070942",
+    "region": "us-east-1"
+  },
+  {
+    "name": "prod",
+    "description": "Production — requires GitHub environment approval",
+    "account": "543816070942",
+    "region": "us-east-1"
+  }
+]

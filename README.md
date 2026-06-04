@@ -39,11 +39,13 @@ agentcore dev
 
 ### Deployment
 
-Deploy to AWS:
+Deploy to AWS (single account, **us-east-1** only):
 
 ```bash
-agentcore deploy
+agentcore deploy --target dev
 ```
+
+Full CI/CD setup (GitHub Actions, dev → staging → prod): [docs/AWS_CICD.md](docs/AWS_CICD.md).
 
 ## Commands
 

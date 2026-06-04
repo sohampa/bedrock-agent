@@ -1,0 +1,68 @@
+# PR security review — invokes deployed dev agent (us-east-1)
+# Requires: agent deployed to dev (CI deploy-dev job on main)
+#
+# Secrets: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, GITHUB_TOKEN
+
+name: PR — Agent security review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  AWS_REGION: us-east-1
+  AGENTCORE_REGION: us-east-1
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "20"
+
+      - run: npm install -g @aws/agentcore
+
+      - name: Build review payload
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          OWNER="${REPO%%/*}"
+          NAME="${REPO##*/}"
+          DIFF="$(gh pr diff "$PR_NUMBER" --repo "$REPO")"
+          printf '%s' "$DIFF" | python scripts/build_review_payload.py \
+            --mode pr \
+            --owner "$OWNER" \
+            --repo "$NAME" \
+            --pr-number "$PR_NUMBER" \
+            --diff-file - \
+            --post-comment \
+            > review-payload.json
+
+      - name: Invoke agent (dev target)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          agentcore invoke \
+            --runtime MyAgent \
+            --target dev \
+            --prompt-file review-payload.json \
+            --json > review-result.json
+
+      - name: Fail on critical findings
+        if: vars.FAIL_ON_CRITICAL != 'false'
+        run: python scripts/check_review_result.py review-result.json

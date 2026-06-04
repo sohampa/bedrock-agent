@@ -1,0 +1,107 @@
+# Stage 2 — CI: build • validate • evaluate (policy gate)
+# Single AWS account, region us-east-1 only.
+#
+# Secrets (for CD workflow): AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
+
+name: CI — Agent validate
+
+on:
+  pull_request:
+    branches: [main, master]
+  push:
+    branches: [main, master]
+
+env:
+  AWS_REGION: us-east-1
+  AGENTCORE_REGION: us-east-1
+  UV_LINK_MODE: copy
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Lint • Test • Validate • Policy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install agent dependencies
+        working-directory: app/MyAgent
+        run: |
+          uv sync
+          uv pip install pytest ruff bandit
+
+      - name: Ruff lint
+        working-directory: app/MyAgent
+        run: uv run ruff check .
+
+      - name: Bandit security scan
+        working-directory: app/MyAgent
+        run: uv run bandit -r . -x ./.venv -ll
+
+      - name: Pytest
+        working-directory: app/MyAgent
+        run: uv run pytest tests/ -q
+
+      - name: Scope policy gate
+        run: python scripts/test_scope.py
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "20"
+
+      - name: Install AgentCore CLI
+        run: npm install -g @aws/agentcore
+
+      - name: Validate AgentCore config
+        run: agentcore validate
+
+      - name: CI summary
+        if: success()
+        run: |
+          echo "CI passed: lint, bandit, pytest, scope policy, agentcore validate"
+          echo "Region: us-east-1 | Targets: dev, staging, prod (same account)"
+
+  deploy-dev:
+    name: Deploy to dev (us-east-1)
+    needs: validate
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    runs-on: ubuntu-latest
+    environment: dev
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "20"
+
+      - run: npm install -g @aws/agentcore
+
+      - name: Deploy AgentCore to dev
+        env:
+          UV_LINK_MODE: copy
+        run: agentcore deploy --target dev
+
+      - name: Deployment status
+        run: agentcore status --target dev

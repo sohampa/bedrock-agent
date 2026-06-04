@@ -1,0 +1,9 @@
+{
+  "prompt": "Review this pull request for security vulnerabilities and unsafe patterns.",
+  "mode": "pr",
+  "owner": "your-org",
+  "repo": "your-repo",
+  "pr_number": 1,
+  "post_comment": true,
+  "focus": ["security", "correctness"]
+}
