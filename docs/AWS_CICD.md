@@ -128,6 +128,10 @@ Manual: agentcore.yml ──► promote ──► staging | prod (us-east-1)
 | Deploy fails | Run `agentcore validate`; check IAM and `aws-targets.json` account |
 | CDK synth failed / uv hardlink (Windows) | `$env:UV_LINK_MODE = "copy"` then redeploy, or `.\scripts\deploy-dev.ps1` |
 | CDK bootstrap / SSM AccessDenied | Run `cdk bootstrap aws://ACCOUNT/us-east-1` and grant `ssm:GetParameter` on `/cdk-bootstrap/*` (see below) |
+| Runtime not found / `UPDATE_ROLLBACK_FAILED` | Runtime deleted in AWS but stack still references it. Run `.\scripts\recover-dev-stack.ps1`, then redeploy |
+| Invoke fails | Deploy dev first; Bedrock Nova enabled; billing valid |
+| PR review 403 | Deploy not complete; wrong `--target` |
+| CI path errors | Workflows assume repo root is `MyAgent` folder |
 
 ### First-time CDK bootstrap (same account, us-east-1)
 
@@ -144,6 +148,3 @@ Your IAM user/role also needs CDK deploy permissions, including:
 - `ssm:GetParameter` on `arn:aws:ssm:us-east-1:543816070942:parameter/cdk-bootstrap/*`
 - CloudFormation create/update
 - IAM pass-role for CDK bootstrap roles (often via `AdministratorAccess` or the CDK deploy policy)
-| Invoke fails | Deploy dev first; Bedrock Nova enabled; billing valid |
-| PR review 403 | Deploy not complete; wrong `--target` |
-| CI path errors | Workflows assume repo root is `MyAgent` folder |
