@@ -1,3 +1,17 @@
 {
-  "targets": {}
+  "targets": {
+    "dev": {
+      "resources": {
+        "runtimes": {
+          "MyAgent": {
+            "runtimeId": "MyAgent_MyAgent-pxX918CLcm",
+            "runtimeArn": "arn:aws:bedrock-agentcore:us-east-1:543816070942:runtime/MyAgent_MyAgent-pxX918CLcm",
+            "roleArn": "arn:aws:iam::543816070942:role/AgentCore-MyAgent-dev-ApplicationAgentMyAgentRuntim-ZQWMlVCcut37"
+          }
+        },
+        "stackName": "AgentCore-MyAgent-dev",
+        "deployHash": "547ce98a06696fdd"
+      }
+    }
+  }
 }

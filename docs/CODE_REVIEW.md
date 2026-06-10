@@ -1,6 +1,6 @@
-# Security code review agent (CI + GitHub PR)
+# Code review agent (CI + GitHub PR)
 
-This agent **only** performs **security** reviews of diffs and pull requests. General chat, style/performance-only review, and other non-security questions are **denied** before the model runs.
+This agent reviews diffs and pull requests for **security issues** and **developer best practices** (error handling, testing, maintainability, naming, structure, performance tied to the change). General chat and off-topic requests are **denied** before the model runs.
 
 ## Prerequisites
 
@@ -23,19 +23,19 @@ GITHUB_TOKEN=ghp_...
 | `diff` | Unified diff text (CI) |
 | `owner`, `repo`, `pr_number` | GitHub PR context |
 | `post_comment` | `true` to post review on the PR |
-| `focus` | Optional list; use `["security"]` (other focus areas are ignored unless security-related) |
+| `focus` | Optional list; e.g. `["security"]`, `["best_practices"]`, `["quality"]` |
 
 ## Out of scope (denied)
 
 - "Hello", general Q&A, jokes, non-coding topics
-- "Review for style/readability/performance only"
-- Debugging or tutoring without a security review request
+- Homework, essays, or tutoring unrelated to reviewing code
 
 ## In scope (allowed)
 
 - PR/CI payloads with a `diff` or GitHub PR fields
-- Prompts that mention security, vulnerabilities, auth, secrets, etc.
-- Example: `"Review this PR for security issues"`
+- Security review (vulnerabilities, auth, secrets, injection, etc.)
+- Best-practices review (naming, structure, error handling, tests, maintainability)
+- Example: `"Review this PR for security and best practices"`
 
 ### Local PR review (post comment)
 

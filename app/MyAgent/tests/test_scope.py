@@ -1,4 +1,4 @@
-"""Policy gate: security-review scope (no Bedrock required)."""
+"""Policy gate: code review scope (no Bedrock required)."""
 
 import sys
 from pathlib import Path
@@ -16,10 +16,16 @@ def test_denies_hello():
     assert not allowed
 
 
-def test_denies_style_only_review():
-    data = parse_review_payload({"prompt": "Review for readability only"})
+def test_allows_style_and_readability_review():
+    data = parse_review_payload({"prompt": "Review for readability and naming"})
     allowed, _ = is_in_scope(data)
-    assert not allowed
+    assert allowed
+
+
+def test_allows_best_practices_review():
+    data = parse_review_payload({"prompt": "Review this code for best practices and error handling"})
+    allowed, _ = is_in_scope(data)
+    assert allowed
 
 
 def test_allows_security_with_diff():

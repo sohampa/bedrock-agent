@@ -28,7 +28,7 @@ In the chat box, send:
 Hello, how are you?
 ```
 
-**Expected:** Refusal message (security code review agent only). No Bedrock call.
+**Expected:** Refusal message (code review agent; not general chat). No Bedrock call.
 
 ## 4. Web UI — security review (needs Bedrock)
 

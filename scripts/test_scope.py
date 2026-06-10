@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Quick local test for security scope guard (no AWS/Bedrock required)."""
+"""Quick local test for code review scope guard (no AWS/Bedrock required)."""
 
 import sys
 from pathlib import Path
@@ -28,7 +28,12 @@ def check(label: str, raw: dict, expect_allow: bool) -> bool:
 def main() -> int:
     tests = [
         ("hello denied", {"prompt": "Hello, how are you?"}, False),
-        ("style-only denied", {"prompt": "Review for readability only"}, False),
+        ("readability review allowed", {"prompt": "Review for readability and naming"}, True),
+        (
+            "best practices allowed",
+            {"prompt": "Review this code for best practices and error handling"},
+            True,
+        ),
         (
             "security + diff allowed",
             {
