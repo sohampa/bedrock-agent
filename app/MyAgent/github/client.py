@@ -3,6 +3,9 @@ import os
 import urllib.error
 import urllib.request
 from typing import Any
+from urllib.parse import urlparse
+
+_ALLOWED_GITHUB_HOSTS = frozenset({"api.github.com", "github.com"})
 
 
 class GitHubError(Exception):
@@ -19,6 +22,21 @@ def _token() -> str:
     return token
 
 
+def _validate_github_https_url(url: str) -> str:
+    parsed = urlparse(url)
+    if parsed.scheme != "https":
+        raise GitHubError(f"Refusing non-HTTPS GitHub URL: {url}")
+    if parsed.hostname not in _ALLOWED_GITHUB_HOSTS:
+        raise GitHubError(f"Refusing unexpected GitHub URL host: {parsed.hostname}")
+    return url
+
+
+def _github_urlopen(req: urllib.request.Request, timeout: int):
+    """Open a validated GitHub HTTPS URL only."""
+    _validate_github_https_url(req.full_url)
+    return urllib.request.urlopen(req, timeout=timeout)  # nosec B310
+
+
 def _request(method: str, url: str, body: dict[str, Any] | None = None) -> Any:
     headers = {
         "Accept": "application/vnd.github+json",
@@ -31,9 +49,11 @@ def _request(method: str, url: str, body: dict[str, Any] | None = None) -> Any:
         data = json.dumps(body).encode("utf-8")
         headers["Content-Type"] = "application/json"
 
-    req = urllib.request.Request(url, data=data, headers=headers, method=method)
+    req = urllib.request.Request(
+        _validate_github_https_url(url), data=data, headers=headers, method=method
+    )
     try:
-        with urllib.request.urlopen(req, timeout=60) as resp:
+        with _github_urlopen(req, timeout=60) as resp:
             raw = resp.read().decode("utf-8")
             return json.loads(raw) if raw else {}
     except urllib.error.HTTPError as e:
@@ -54,9 +74,11 @@ def fetch_pr_diff(owner: str, repo: str, pr_number: int) -> str:
         "Authorization": f"Bearer {_token()}",
         "User-Agent": "agentcore-code-review-agent",
     }
-    req = urllib.request.Request(diff_url, headers=headers, method="GET")
+    req = urllib.request.Request(
+        _validate_github_https_url(diff_url), headers=headers, method="GET"
+    )
     try:
-        with urllib.request.urlopen(req, timeout=120) as resp:
+        with _github_urlopen(req, timeout=120) as resp:
             return resp.read().decode("utf-8", errors="replace")
     except urllib.error.HTTPError as e:
         detail = e.read().decode("utf-8", errors="replace")
