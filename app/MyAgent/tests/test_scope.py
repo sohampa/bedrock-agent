@@ -23,7 +23,9 @@ def test_allows_style_and_readability_review():
 
 
 def test_allows_best_practices_review():
-    data = parse_review_payload({"prompt": "Review this code for best practices and error handling"})
+    data = parse_review_payload(
+        {"prompt": "Review this code for best practices and error handling"}
+    )
     allowed, _ = is_in_scope(data)
     assert allowed
 

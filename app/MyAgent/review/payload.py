@@ -20,7 +20,8 @@ def parse_review_payload(payload: Any) -> dict[str, Any]:
             if isinstance(embedded, dict):
                 data = {**embedded, **{k: v for k, v in data.items() if k != "prompt"}}
                 if "prompt" not in embedded and prompt:
-                    data.setdefault("prompt", embedded.get("prompt", "Review the provided changes."))
+                    default_prompt = embedded.get("prompt", "Review the provided changes.")
+                    data.setdefault("prompt", default_prompt)
         except json.JSONDecodeError:
             pass
 
@@ -58,11 +59,13 @@ def build_user_message(data: dict[str, Any]) -> str:
         parts.append(f"\n**GitHub PR:** {owner}/{repo}#{pr_number}")
         if data.get("post_comment"):
             parts.append(
-                "**Action:** After review, call `post_github_pr_review_comment` with the full review body."
+                "**Action:** After review, call `post_github_pr_review_comment` "
+                "with the full review body."
             )
         else:
             parts.append(
-                "**Action:** Use `fetch_github_pr_diff` if you need the patch; do not post to GitHub unless asked."
+                "**Action:** Use `fetch_github_pr_diff` if you need the patch; "
+                "do not post to GitHub unless asked."
             )
 
     diff = data.get("diff")
