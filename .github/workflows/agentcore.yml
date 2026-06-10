@@ -108,7 +108,13 @@ jobs:
 
       - run: npm install -g @aws/agentcore
 
+      - name: Install CDK dependencies
+        working-directory: agentcore/cdk
+        run: npm ci
+
       - name: Deploy AgentCore to dev
+        env:
+          UV_LINK_MODE: copy
         run: agentcore deploy --target dev
 
       - name: Deployment status
@@ -134,6 +140,10 @@ jobs:
           node-version: "20"
 
       - run: npm install -g @aws/agentcore
+
+      - name: Install CDK dependencies
+        working-directory: agentcore/cdk
+        run: npm ci
 
       - name: Validate config
         run: agentcore validate

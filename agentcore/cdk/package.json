@@ -20,7 +20,7 @@
     "ts-jest": "^29.2.5",
     "aws-cdk": "2.1100.1",
     "prettier": "^3.4.2",
-    "typescript": "~5.9.3"
+    "typescript": "5.9.3"
   },
   "dependencies": {
     "@aws/agentcore-cdk": "^0.1.0-alpha.19",
