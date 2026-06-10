@@ -1,0 +1,200 @@
+# AgentCore CI/CD — validate, deploy, PR review (single account, us-east-1)
+#
+# Secrets: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, GITHUB_TOKEN
+# Environments: dev (auto deploy), staging, production (manual promote)
+
+name: AgentCore CI/CD
+
+on:
+  pull_request:
+    branches: [main, master]
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Promote to staging or prod
+        required: true
+        type: choice
+        options:
+          - staging
+          - prod
+
+env:
+  AWS_REGION: us-east-1
+  AGENTCORE_REGION: us-east-1
+  UV_LINK_MODE: copy
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Lint • Test • Validate • Policy
+    if: github.event_name != 'workflow_dispatch'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install agent dependencies
+        working-directory: app/MyAgent
+        run: |
+          uv sync
+          uv pip install pytest ruff bandit
+
+      - name: Ruff lint
+        working-directory: app/MyAgent
+        run: uv run ruff check .
+
+      - name: Bandit security scan
+        working-directory: app/MyAgent
+        run: uv run bandit -r . -x ./.venv -ll
+
+      - name: Pytest
+        working-directory: app/MyAgent
+        run: uv run pytest tests/ -q
+
+      - name: Scope policy gate
+        run: python scripts/test_scope.py
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "20"
+
+      - name: Install AgentCore CLI
+        run: npm install -g @aws/agentcore
+
+      - name: Validate AgentCore config
+        run: agentcore validate
+
+      - name: CI summary
+        if: success()
+        run: |
+          echo "CI passed: lint, bandit, pytest, scope policy, agentcore validate"
+          echo "Region: us-east-1 | Targets: dev, staging, prod (same account)"
+
+  deploy-dev:
+    name: Deploy to dev (us-east-1)
+    needs: validate
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    runs-on: ubuntu-latest
+    environment: dev
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "20"
+
+      - run: npm install -g @aws/agentcore
+
+      - name: Deploy AgentCore to dev
+        run: agentcore deploy --target dev
+
+      - name: Deployment status
+        run: agentcore status --target dev
+
+  promote:
+    name: Deploy to ${{ inputs.target }} (us-east-1)
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.target == 'prod' && 'production' || 'staging' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "20"
+
+      - run: npm install -g @aws/agentcore
+
+      - name: Validate config
+        run: agentcore validate
+
+      - name: Deploy AgentCore
+        run: agentcore deploy --target ${{ inputs.target }}
+
+      - name: Deployment status
+        run: agentcore status --target ${{ inputs.target }}
+
+  pr-review:
+    name: PR code review (dev agent)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "20"
+
+      - run: npm install -g @aws/agentcore
+
+      - name: Build review payload
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          OWNER="${REPO%%/*}"
+          NAME="${REPO##*/}"
+          DIFF="$(gh pr diff "$PR_NUMBER" --repo "$REPO")"
+          printf '%s' "$DIFF" | python scripts/build_review_payload.py \
+            --mode pr \
+            --owner "$OWNER" \
+            --repo "$NAME" \
+            --pr-number "$PR_NUMBER" \
+            --diff-file - \
+            --post-comment \
+            > review-payload.json
+
+      - name: Invoke agent (dev target)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          agentcore invoke \
+            --runtime MyAgent \
+            --target dev \
+            --prompt-file review-payload.json \
+            --json > review-result.json
+
+      - name: Fail on critical findings
+        if: vars.FAIL_ON_CRITICAL != 'false'
+        run: python scripts/check_review_result.py review-result.json

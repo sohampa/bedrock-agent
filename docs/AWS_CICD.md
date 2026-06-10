@@ -5,10 +5,10 @@ Foundry-style pipeline implemented with **GitHub Actions** + **AgentCore**.
 | Stage | Workflow | What it does |
 | --- | --- | --- |
 | 1. Code | *(repo)* | `app/MyAgent/`, `agentcore/agentcore.json` |
-| 2. CI | `ci-agent.yml` | ruff, bandit, pytest, scope gate, `agentcore validate` |
-| 2b. CI deploy | `ci-agent.yml` → `deploy-dev` | Auto `agentcore deploy --target dev` on push to `main` |
-| 3. CD promote | `cd-deploy.yml` | Manual deploy to `staging` or `prod` |
-| PR review | `agent-code-review.yml` | Security review via deployed **dev** agent |
+| 2. CI | `agentcore.yml` → `validate` | ruff, bandit, pytest, scope gate, `agentcore validate` |
+| 2b. CI deploy | `agentcore.yml` → `deploy-dev` | Auto `agentcore deploy --target dev` on push to `main` |
+| 3. CD promote | `agentcore.yml` → `promote` | Manual deploy to `staging` or `prod` |
+| PR review | `agentcore.yml` → `pr-review` | Code review via deployed **dev** agent |
 | 4. Runtime | AgentCore | Bedrock Nova in **us-east-1** |
 | 5. Monitor | CLI | `agentcore logs`, `agentcore traces`, `agentcore status` |
 
@@ -50,8 +50,8 @@ IAM user/role needs at minimum:
 | Environment | Used for |
 | --- | --- |
 | `dev` | Auto deploy from `main` |
-| `staging` | Manual `cd-deploy.yml` → staging |
-| `production` | Manual `cd-deploy.yml` → prod |
+| `staging` | Manual `agentcore.yml` → promote → staging |
+| `production` | Manual `agentcore.yml` → promote → prod |
 
 Add **required reviewers** on `staging` and `production` for HITL gates.
 
@@ -79,10 +79,10 @@ Enable **Amazon Nova Pro** in Bedrock (us-east-1).
 ## Step 5 — Enable CI/CD
 
 1. Push to GitHub (`main` branch).
-2. Open **Actions** → **CI — Agent validate** runs on every PR and push.
-3. On push to `main`, **deploy-dev** runs after CI passes.
-4. Promote manually: **Actions** → **CD — Promote staging / prod** → Run workflow → choose `staging` or `prod`.
-5. PRs trigger **PR — Agent security review** (needs dev deployed).
+2. Open **Actions** → **AgentCore CI/CD** runs on every PR and push.
+3. On push to `main`, **deploy-dev** runs after **validate** passes.
+4. Promote manually: **Actions** → **AgentCore CI/CD** → **Run workflow** → choose `staging` or `prod`.
+5. PRs trigger **pr-review** (needs dev deployed).
 
 ---
 
@@ -110,13 +110,13 @@ agentcore deploy --target dev
 PR / push
     │
     ▼
-ci-agent.yml ──► lint, bandit, pytest, scope, validate
+agentcore.yml ──► validate (lint, bandit, pytest, scope, agentcore validate)
     │
     ├── push main ──► deploy-dev (us-east-1, target dev)
     │
-PR ──► agent-code-review.yml ──► invoke dev agent + PR comment
+PR ──► pr-review ──► invoke dev agent + PR comment
 
-Manual: cd-deploy.yml ──► staging | prod (us-east-1)
+Manual: agentcore.yml ──► promote ──► staging | prod (us-east-1)
 ```
 
 ---

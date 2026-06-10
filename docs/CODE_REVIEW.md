@@ -74,7 +74,7 @@ agentcore invoke --dev --prompt-file payload.json
 
 ## GitHub Actions
 
-Workflow: [`.github/workflows/agent-code-review.yml`](../.github/workflows/agent-code-review.yml)
+Workflow: [`.github/workflows/agentcore.yml`](../.github/workflows/agentcore.yml)
 
 **Secrets:** `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` (or switch to OIDC).
 
