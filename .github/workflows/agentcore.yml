@@ -165,5 +165,4 @@ jobs:
         run: agentcore deploy --target ${{ inputs.target }}
 
       - name: Deployment status
-        run: agentcore status --target ${{ inputs.target }}rs.FAIL_ON_CRITICAL != 'false'
-        run: python scripts/check_review_result.py review-result.json
+        run: agentcore status --target ${{ inputs.target }}rs.FAIL_ON_CRITICAL != 'false' 
