@@ -1,4 +1,4 @@
-# AWS CI/CD (single account, us-east-1)
+# AWS: CI/CD (single account, us-east-1)
 
 Foundry-style pipeline implemented with **GitHub Actions** + **AgentCore**.
 
