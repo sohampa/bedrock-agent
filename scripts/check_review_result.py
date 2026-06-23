@@ -32,6 +32,24 @@ def main() -> None:
     meta = extract_meta(text) if isinstance(text, str) else None
     critical = int(meta.get("critical", 0)) if meta else 0
 
+    text = ""
+    if isinstance(data, dict):
+        text = data.get("response", "") or data.get("text", "") or ""
+        if isinstance(text, dict):
+            text = text.get("text", json.dumps(text))
+
+    meta = extract_meta(text) if isinstance(text, str) else None
+    critical = int(meta.get("critical", 0)) if meta else 0
+
+    text = ""
+    if isinstance(data, dict):
+        text = data.get("response", "") or data.get("text", "") or ""
+        if isinstance(text, dict):
+            text = text.get("text", json.dumps(text))
+
+    meta = extract_meta(text) if isinstance(text, str) else None
+    critical = int(meta.get("critical", 0)) if meta else 0
+
     if critical > 0:
         print(f"Code review failed: {critical} critical finding(s).")
         sys.exit(1)
