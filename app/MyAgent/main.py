@@ -37,6 +37,36 @@ def get_or_create_agent():
         )
     return _agent
 
+def get_or_create_agent():
+    global _agent
+    if _agent is None:
+        _agent = Agent(
+            model=load_model(),
+            system_prompt=CODE_REVIEW_SYSTEM_PROMPT,
+            tools=tools,
+        )
+    return _agent
+
+def get_or_create_agent():
+    global _agent
+    if _agent is None:
+        _agent = Agent(
+            model=load_model(),
+            system_prompt=CODE_REVIEW_SYSTEM_PROMPT,
+            tools=tools,
+        )
+    return _agent
+
+def get_or_create_agent():
+    global _agent
+    if _agent is None:
+        _agent = Agent(
+            model=load_model(),
+            system_prompt=CODE_REVIEW_SYSTEM_PROMPT,
+            tools=tools,
+        )
+    return _agent
+
 
 @app.entrypoint
 async def invoke(payload, context):
