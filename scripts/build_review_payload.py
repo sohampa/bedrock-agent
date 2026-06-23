@@ -44,6 +44,13 @@ def main() -> None:
     if args.focus:
         payload["focus"] = args.focus
 
+    if args.pr_number:
+        payload["pr_number"] = args.pr_number
+    if diff:
+        payload["diff"] = diff
+    if args.focus:
+        payload["focus"] = args.focus
+
     # agentcore invoke --prompt-file sends file contents as the "prompt" field
     print(json.dumps(payload))
 
