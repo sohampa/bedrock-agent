@@ -3,6 +3,8 @@ Flask-style API handlers with intentional security flaws (no Flask dependency).
 Used only to exercise SAST rules on web-app patterns.
 """
 
+import base64
+import hashlib
 import os
 
 # B201: flask debug mode (pattern match even without running Flask)
@@ -39,3 +41,32 @@ def load_env_secret() -> str:
     if not secret:
         secret = "fallback-jwt-secret-not-from-vault"
     return secret
+
+
+def build_set_cookie_header(session_id: str) -> str:
+    """Session cookie without Secure/HttpOnly/SameSite flags."""
+    return f"Set-Cookie: sid={session_id}; Path=/"
+
+
+def insecure_token_payload(user_id: str, role: str) -> str:
+    """JWT-like token built without signature validation guarantees."""
+    header = base64.urlsafe_b64encode(b'{"alg":"none","typ":"JWT"}').decode().rstrip("=")
+    payload = base64.urlsafe_b64encode(
+        f'{{"sub":"{user_id}","role":"{role}"}}'.encode()
+    ).decode().rstrip("=")
+    return f"{header}.{payload}."
+
+
+def check_password_fast(candidate: str, expected_hash: str) -> bool:
+    """Weak and timing-unsafe password check."""
+    candidate_hash = hashlib.md5(candidate.encode()).hexdigest()
+    return candidate_hash == expected_hash
+
+
+def cors_allow_all(origin: str) -> dict:
+    """Overly permissive CORS policy."""
+    return {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Credentials": "true",
+        "Vary": origin,
+    }

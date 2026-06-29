@@ -29,13 +29,24 @@ CI will **fail** on this branch because Bandit scans the entire `app/MyAgent` tr
 | `vulnerable_patterns.py` | Hardcoded API key / password | B105, B106 | CWE-798 |
 | `vulnerable_patterns.py` | SQL string concatenation | B608 | CWE-89 |
 | `vulnerable_patterns.py` | `eval()` on user input | B307 | CWE-95 |
+| `vulnerable_patterns.py` | `exec()` on user input | B102 | CWE-94 |
 | `vulnerable_patterns.py` | `subprocess` with `shell=True` | B602, B603 | CWE-78 |
 | `vulnerable_patterns.py` | `pickle.loads` | B301 | CWE-502 |
 | `vulnerable_patterns.py` | `yaml.load` without SafeLoader | B506 | CWE-20 |
+| `vulnerable_patterns.py` | Insecure XML parsing | B313, B314 | CWE-611 |
 | `vulnerable_patterns.py` | MD5 for password hashing | B324 | CWE-327 |
+| `vulnerable_patterns.py` | SHA1 for password hashing | B324 | CWE-327 |
 | `vulnerable_patterns.py` | Insecure temp file | B108 | CWE-377 |
+| `vulnerable_patterns.py` | `tempfile.mktemp` usage | B306 | CWE-377 |
+| `vulnerable_patterns.py` | `assert` as security control | B101 | CWE-703 |
+| `vulnerable_patterns.py` | Bind all interfaces (`0.0.0.0`) | B104 | CWE-1327 |
+| `vulnerable_patterns.py` | Weak pseudo-random token generation | B311 | CWE-330 |
 | `insecure_api.py` | Path traversal | B202 (custom) / manual | CWE-22 |
 | `insecure_api.py` | Debug mode enabled | B201 | CWE-489 |
+| `insecure_api.py` | Cookie missing security flags | Manual / policy-based | CWE-614 |
+| `insecure_api.py` | JWT-style token with `alg=none` | Manual / policy-based | CWE-345 |
+| `insecure_api.py` | Weak hash + timing-unsafe compare | B324 / manual | CWE-327 |
+| `insecure_api.py` | Overly permissive CORS | Manual / policy-based | CWE-942 |
 
 ## Testing the code review agent
 

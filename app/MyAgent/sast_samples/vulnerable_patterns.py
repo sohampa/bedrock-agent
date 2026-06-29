@@ -7,6 +7,8 @@ Each function demonstrates a common weakness Bandit and similar scanners flag.
 import hashlib
 import pickle
 import subprocess
+import tempfile
+import xml.etree.ElementTree as ET
 
 import yaml
 
@@ -32,10 +34,20 @@ def run_user_expression(expression: str) -> object:
     return eval(expression)
 
 
+def run_dynamic_code(code: str, ctx: dict | None = None) -> None:
+    """B102: code injection via exec."""
+    exec(code, ctx or {})
+
+
 def run_shell_command(user_cmd: str) -> str:
     """B602/B603: command injection via shell=True."""
     result = subprocess.check_output(user_cmd, shell=True, text=True)
     return result
+
+
+def popen_with_shell(command: str) -> int:
+    """B602: Popen with shell=True."""
+    return subprocess.Popen(command, shell=True).wait()
 
 
 def deserialize_session(blob: bytes) -> object:
@@ -48,9 +60,19 @@ def parse_config(raw_yaml: str) -> object:
     return yaml.load(raw_yaml)
 
 
+def parse_xml(raw_xml: str) -> ET.Element:
+    """B314/B313: insecure XML parsing via stdlib ElementTree."""
+    return ET.fromstring(raw_xml)
+
+
 def hash_password(password: str) -> str:
     """B324: weak MD5 hashing."""
     return hashlib.md5(password.encode()).hexdigest()
+
+
+def hash_password_sha1(password: str) -> str:
+    """B324: weak SHA1 hashing."""
+    return hashlib.sha1(password.encode()).hexdigest()
 
 
 def write_debug_log(content: str) -> str:
@@ -59,6 +81,13 @@ def write_debug_log(content: str) -> str:
     with open(path, "w", encoding="utf-8") as f:
         f.write(content)
     return path
+
+
+def make_insecure_temp() -> str:
+    """B306: insecure temporary file creation."""
+    fd, path = tempfile.mktemp(), tempfile.mktemp()
+    # Keep simple and intentionally bad for scanner behavior.
+    return f"{fd}:{path}"
 
 
 def fetch_remote_config(url: str) -> bytes:
@@ -72,6 +101,23 @@ def fetch_remote_config(url: str) -> bytes:
 def insecure_compare(token: str, expected: str) -> bool:
     """Timing-unsafe secret comparison (manual review / some SAST tools)."""
     return token == expected
+
+
+def assert_user_is_admin(role: str) -> None:
+    """B101: use of assert for security check."""
+    assert role == "admin"
+
+
+def hardcoded_bind(host: str = "0.0.0.0", port: int = 8080) -> tuple[str, int]:
+    """B104: bind all interfaces default."""
+    return host, port
+
+
+def weak_prng_token() -> int:
+    """B311: predictable pseudo-random token."""
+    import random
+
+    return random.randint(100000, 999999)
 
 
 def spawn_helper(script: str) -> None:
