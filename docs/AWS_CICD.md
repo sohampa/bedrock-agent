@@ -5,7 +5,7 @@ Foundry-style pipeline implemented with **GitHub Actions** + **AgentCore**.
 | Stage | Workflow | What it does |
 | --- | --- | --- |
 | 1. Code | *(repo)* | `app/MyAgent/`, `agentcore/agentcore.json` |
-| 2. CI | `agentcore.yml` → `validate` | ruff, bandit, pytest, scope gate, `agentcore validate` |
+| 2. CI | `agentcore.yml` → `validate` | ruff, bandit, Snyk code scan, pytest, scope gate, `agentcore validate` |
 | 2b. CI deploy | `agentcore.yml` → `deploy-dev` | Auto `agentcore deploy --target dev` on push to `main` |
 | 3. CD promote | `agentcore.yml` → `promote` | Manual deploy to `staging` or `prod` |
 | PR review | `agentcore.yml` → `pr-review` | Code review via deployed **dev** agent |
@@ -34,6 +34,7 @@ Repository → **Settings** → **Secrets and variables** → **Actions**:
 | --- | --- |
 | `AWS_ACCESS_KEY_ID` | Deploy + invoke Bedrock/AgentCore |
 | `AWS_SECRET_ACCESS_KEY` | Pair with above |
+| `SNYK_TOKEN` | Enable Snyk code scanning in CI |
 | `GITHUB_TOKEN` | Default token usually works for PR comments |
 
 IAM user/role needs at minimum:

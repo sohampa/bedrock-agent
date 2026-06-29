@@ -61,6 +61,21 @@ jobs:
         working-directory: app/MyAgent
         run: uv run bandit -r . -x ./.venv -ll
 
+      - name: Setup Snyk CLI
+        if: ${{ secrets.SNYK_TOKEN != '' }}
+        uses: snyk/actions/setup@master
+
+      - name: Snyk code scan
+        if: ${{ secrets.SNYK_TOKEN != '' }}
+        working-directory: app/MyAgent
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: snyk code test . --severity-threshold=low
+
+      - name: Snyk scan skipped
+        if: ${{ secrets.SNYK_TOKEN == '' }}
+        run: echo "SNYK_TOKEN is not configured; skipping Snyk scan."
+
       - name: Pytest
         working-directory: app/MyAgent
         run: uv run pytest tests/ -q
@@ -165,4 +180,4 @@ jobs:
         run: agentcore deploy --target ${{ inputs.target }}
 
       - name: Deployment status
-        run: agentcore status --target ${{ inputs.target }}rs.FAIL_ON_CRITICAL != 'false' 
+        run: agentcore status --target ${{ inputs.target }}
