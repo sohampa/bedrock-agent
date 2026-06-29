@@ -36,6 +36,7 @@ select = ["E", "F", "I", "UP"]
 [tool.ruff.lint.per-file-ignores]
 "review/prompts.py" = ["E501"]
 "review/scope.py" = ["E501"]
+"sast_samples/**" = ["UP031"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
