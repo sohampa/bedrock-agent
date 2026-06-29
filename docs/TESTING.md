@@ -43,7 +43,21 @@ Paste the full contents of `scripts/test-security-payload.json` as one message.
 - Confirm `app/MyAgent/model/load.py` uses `amazon.nova-pro-v1:0`
 - Restart `agentcore dev` after fixes
 
-## 5. CLI invoke (deployed agent only)
+## 5. Web UI — PoC security fixture (needs Bedrock)
+
+For broader PoC testing, paste `scripts/test-security-payload-poc.json` as one message.
+
+**Expected:** Findings for SQL injection, command execution, and unsafe evaluation patterns in the supplied diff text.
+
+## 6. CodeQL static scan (safe PoC flow)
+
+The repository now includes `.github/workflows/codeql.yml`.
+
+- Open a PR (or push to `main`/`master`)
+- Run/check the **CodeQL** workflow in GitHub Actions
+- Review alerts under **Security → Code scanning alerts**
+
+## 7. CLI invoke (deployed agent only)
 
 `agentcore invoke` calls the **deployed** runtime (no `--dev` flag in CLI v0.16).
 
@@ -65,3 +79,4 @@ curl.exe -X POST http://127.0.0.1:8080/invocations `
 | --- | --- |
 | `scripts/test-denied-payload.json` | Should be **denied** |
 | `scripts/test-security-payload.json` | Should run **security review** |
+| `scripts/test-security-payload-poc.json` | Broader **PoC security review** fixture |
