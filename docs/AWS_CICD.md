@@ -6,6 +6,7 @@ Foundry-style pipeline implemented with **GitHub Actions** + **AgentCore**.
 | --- | --- | --- |
 | 1. Code | *(repo)* | `app/MyAgent/`, `agentcore/agentcore.json` |
 | 2. CI | `agentcore.yml` → `validate` | ruff, bandit, pytest, scope gate, `agentcore validate` |
+| 2a. SAST | `codeql.yml` | GitHub CodeQL scan for Python and JavaScript/TypeScript |
 | 2b. CI deploy | `agentcore.yml` → `deploy-dev` | Auto `agentcore deploy --target dev` on push to `main` |
 | 3. CD promote | `agentcore.yml` → `promote` | Manual deploy to `staging` or `prod` |
 | PR review | `agentcore.yml` → `pr-review` | Code review via deployed **dev** agent |

@@ -1,0 +1,5 @@
+{
+  "prompt": "Review this PoC diff for security vulnerabilities and insecure coding patterns.",
+  "mode": "ci",
+  "diff": "diff --git a/poc_demo.py b/poc_demo.py\n--- a/poc_demo.py\n+++ b/poc_demo.py\n@@ -1,4 +1,14 @@\n+import subprocess\n+\n def login(username, password):\n-    return True\n+    query = \"SELECT * FROM users WHERE name='\" + username + \"' AND pass='\" + password + \"'\"\n+    if username == \"admin\":\n+        token = \"HARDCODED_TEST_TOKEN_VALUE\"\n+    return db.execute(query)\n+\n+\n+def run_tool(user_input):\n+    subprocess.run(\"echo \" + user_input, shell=True)\n+\n+\n+def load_config(path):\n+    return eval(open(path, \"r\", encoding=\"utf-8\").read())\n"
+}
