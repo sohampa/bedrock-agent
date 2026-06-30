@@ -5,7 +5,7 @@ Foundry-style pipeline implemented with **GitHub Actions** + **AgentCore**.
 | Stage | Workflow | What it does |
 | --- | --- | --- |
 | 1. Code | *(repo)* | `app/MyAgent/`, `agentcore/agentcore.json` |
-| 2. CI | `agentcore.yml` → `validate` | ruff, bandit, Snyk code scan, pytest, scope gate, `agentcore validate` |
+| 2. CI | `agentcore.yml` → `validate` | ruff, pytest, scope gate, `agentcore validate` (+ optional Bandit via `ENABLE_BANDIT=true`) |
 | 2b. CI deploy | `agentcore.yml` → `deploy-dev` | Auto `agentcore deploy --target dev` on push to `main` |
 | 3. CD promote | `agentcore.yml` → `promote` | Manual deploy to `staging` or `prod` |
 | PR review | `agentcore.yml` → `pr-review` | Code review via deployed **dev** agent |
@@ -111,7 +111,7 @@ agentcore deploy --target dev
 PR / push
     │
     ▼
-agentcore.yml ──► validate (lint, bandit, pytest, scope, agentcore validate)
+agentcore.yml ──► validate (lint, pytest, scope, agentcore validate; optional bandit)
     │
     ├── push main ──► deploy-dev (us-east-1, target dev)
     │
