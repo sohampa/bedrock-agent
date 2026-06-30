@@ -40,7 +40,6 @@ jobs:
     permissions:
       contents: read
       pull-requests: read
-      security-events: write
 
     steps:
       - name: Checkout
@@ -91,12 +90,6 @@ jobs:
       - name: Bandit security scan (enforced gate)
         working-directory: app/MyAgent
         run: uv run bandit -r . -x ./.venv -ll
-
-      - name: Upload Bandit SARIF to GitHub Code Scanning
-        if: always() && hashFiles('app/MyAgent/bandit.sarif') != ''
-        uses: github/codeql-action/upload-sarif@v4
-        with:
-          sarif_file: app/MyAgent/bandit.sarif
 
       - name: Upload Bandit report artifacts
         if: always()
