@@ -26,6 +26,8 @@ env:
 
 permissions:
   contents: read
+  pull-requests: read
+  security-events: write
 
 jobs:
   validate:
@@ -36,6 +38,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -57,9 +61,31 @@ jobs:
         working-directory: app/MyAgent
         run: uv run ruff check .
 
-      - name: Bandit security scan
+      - name: Generate Bandit reports
+        working-directory: app/MyAgent
+        run: |
+          uv run bandit -r . -x ./.venv -f sarif -o bandit.sarif || true
+          uv run bandit -r . -x ./.venv -f json -o bandit.json || true
+
+      - name: Bandit security scan (enforced gate)
         working-directory: app/MyAgent
         run: uv run bandit -r . -x ./.venv -ll
+
+      - name: Upload Bandit SARIF to GitHub Code Scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: app/MyAgent/bandit.sarif
+
+      - name: Upload Bandit report artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bandit-reports
+          path: |
+            app/MyAgent/bandit.sarif
+            app/MyAgent/bandit.json
+          if-no-files-found: warn
 
 
       - name: Pytest
@@ -68,6 +94,17 @@ jobs:
 
       - name: Scope policy gate
         run: python scripts/test_scope.py
+
+      - name: SonarCloud scan
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.organization=almcybage
+            -Dsonar.projectKey=almcybage_bedrock-agent
+            -Dsonar.sources=app/MyAgent
+            -Dsonar.python.version=3.12
 
       - name: Setup Node.js
         uses: actions/setup-node@v5
@@ -95,6 +132,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -134,6 +173,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: aws-actions/configure-aws-credentials@v4
         with:
