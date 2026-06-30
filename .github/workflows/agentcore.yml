@@ -26,6 +26,7 @@ env:
 
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
   validate:
@@ -36,6 +37,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -69,6 +72,17 @@ jobs:
       - name: Scope policy gate
         run: python scripts/test_scope.py
 
+      - name: SonarCloud scan
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.organization=almcybage
+            -Dsonar.projectKey=almcybage_bedrock-agent
+            -Dsonar.sources=app/MyAgent
+            -Dsonar.python.version=3.12
+
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
@@ -95,6 +109,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -134,6 +150,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: aws-actions/configure-aws-credentials@v4
         with:
