@@ -27,6 +27,7 @@ env:
 permissions:
   contents: read
   pull-requests: read
+  security-events: write
 
 jobs:
   validate:
@@ -60,9 +61,31 @@ jobs:
         working-directory: app/MyAgent
         run: uv run ruff check .
 
-      - name: Bandit security scan
+      - name: Generate Bandit reports
+        working-directory: app/MyAgent
+        run: |
+          uv run bandit -r . -x ./.venv -f sarif -o bandit.sarif || true
+          uv run bandit -r . -x ./.venv -f json -o bandit.json || true
+
+      - name: Bandit security scan (enforced gate)
         working-directory: app/MyAgent
         run: uv run bandit -r . -x ./.venv -ll
+
+      - name: Upload Bandit SARIF to GitHub Code Scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: app/MyAgent/bandit.sarif
+
+      - name: Upload Bandit report artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bandit-reports
+          path: |
+            app/MyAgent/bandit.sarif
+            app/MyAgent/bandit.json
+          if-no-files-found: warn
 
 
       - name: Pytest
