@@ -37,7 +37,6 @@ def get_or_create_agent():
         )
     return _agent
 
-
 @app.entrypoint
 async def invoke(payload, context):
     log.info("Invoking code review agent")

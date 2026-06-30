@@ -15,13 +15,13 @@ def test_denies_hello():
     allowed, _ = is_in_scope(data)
     assert not allowed
 
-
+#ai-block
 def test_allows_style_and_readability_review():
     data = parse_review_payload({"prompt": "Review for readability and naming"})
     allowed, _ = is_in_scope(data)
     assert allowed
 
-
+#ai-block
 def test_allows_best_practices_review():
     data = parse_review_payload(
         {"prompt": "Review this code for best practices and error handling"}
@@ -29,7 +29,7 @@ def test_allows_best_practices_review():
     allowed, _ = is_in_scope(data)
     assert allowed
 
-
+#ai-block
 def test_allows_security_with_diff():
     data = parse_review_payload(
         {

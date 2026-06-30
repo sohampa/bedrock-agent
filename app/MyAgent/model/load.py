@@ -5,7 +5,7 @@ from strands.models.bedrock import BedrockModel
 # Nova v1 models support on-demand Converse. Nova 2.x requires an inference profile ARN.
 DEFAULT_MODEL_ID = "amazon.nova-lite-v1:0"
 
-
+#ai-block
 def load_model() -> BedrockModel:
     """Get Bedrock model client using IAM credentials."""
     model_id = os.environ.get("BEDROCK_MODEL_ID", DEFAULT_MODEL_ID)

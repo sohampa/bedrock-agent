@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 # ExaAI: web search, crawling, and code context. No authentication required.
 EXAMPLE_MCP_ENDPOINT = "https://mcp.exa.ai/mcp"
 
-
+#ai-block
 def get_streamable_http_mcp_client() -> MCPClient:
     """Returns an MCP Client compatible with Strands"""
     # Bearer auth: headers={"Authorization": f"Bearer {access_token}"}
