@@ -5,6 +5,10 @@
 
 name: AgentCore CI/CD
 
+concurrency:
+  group: agentcore-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   pull_request:
   push:
@@ -26,14 +30,17 @@ env:
 
 permissions:
   contents: read
-  pull-requests: read
-  security-events: write
 
 jobs:
   validate:
     name: Lint • Test • Validate • Policy
     if: github.event_name == 'pull_request' || github.event_name == 'push'
     runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      pull-requests: read
+      security-events: write
 
     steps:
       - name: Checkout
@@ -128,12 +135,11 @@ jobs:
     needs: validate
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     environment: dev
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -169,12 +175,11 @@ jobs:
     name: Deploy to ${{ inputs.target }} (us-east-1)
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     environment: ${{ inputs.target == 'prod' && 'production' || 'staging' }}
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - uses: aws-actions/configure-aws-credentials@v4
         with:
