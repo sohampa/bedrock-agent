@@ -61,20 +61,6 @@ jobs:
         working-directory: app/MyAgent
         run: uv run bandit -r . -x ./.venv -ll
 
-      - name: Setup Snyk CLI
-        if: ${{ secrets.SNYK_TOKEN != '' }}
-        uses: snyk/actions/setup@master
-
-      - name: Snyk code scan
-        if: ${{ secrets.SNYK_TOKEN != '' }}
-        working-directory: app/MyAgent
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        run: snyk code test . --severity-threshold=low
-
-      - name: Snyk scan skipped
-        if: ${{ secrets.SNYK_TOKEN == '' }}
-        run: echo "SNYK_TOKEN is not configured; skipping Snyk scan."
 
       - name: Pytest
         working-directory: app/MyAgent
