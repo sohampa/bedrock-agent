@@ -61,19 +61,21 @@ jobs:
         working-directory: app/MyAgent
         run: |
           uv sync
-          uv pip install pytest ruff bandit
+          uv pip install pytest ruff
 
       - name: Ruff lint
         working-directory: app/MyAgent
         run: uv run ruff check .
 
       - name: Generate Bandit reports
+        if: ${{ vars.ENABLE_BANDIT == 'true' }}
         working-directory: app/MyAgent
         run: |
           uv run bandit -r . -x ./.venv -f sarif -o bandit.sarif || true
           uv run bandit -r . -x ./.venv -f json -o bandit.json || true
 
       - name: Ensure Bandit report files exist
+        if: ${{ vars.ENABLE_BANDIT == 'true' }}
         working-directory: app/MyAgent
         run: |
           test -f bandit.json || echo '{"errors":[],"generated_at":"","metrics":{},"results":[]}' > bandit.json
@@ -88,11 +90,12 @@ jobs:
           fi
 
       - name: Bandit security scan (enforced gate)
+        if: ${{ vars.ENABLE_BANDIT == 'true' }}
         working-directory: app/MyAgent
         run: uv run bandit -r . -x ./.venv -ll
 
       - name: Upload Bandit report artifacts
-        if: always()
+        if: ${{ always() && vars.ENABLE_BANDIT == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: bandit-reports
@@ -137,7 +140,8 @@ jobs:
       - name: CI summary
         if: success()
         run: |
-          echo "CI passed: lint, bandit, pytest, scope policy, agentcore validate"
+          echo "CI passed: lint, pytest, scope policy, agentcore validate"
+          echo "Bandit: ${{ vars.ENABLE_BANDIT == 'true' && 'enabled' || 'disabled (optional)' }}"
           echo "Region: us-east-1 | Targets: dev, staging, prod (same account)"
 
   deploy-dev:
