@@ -117,7 +117,10 @@ jobs:
           args: >
             -Dsonar.organization=almcybage
             -Dsonar.projectKey=almcybage_bedrock-agent
-            -Dsonar.sources=app/MyAgent
+            -Dsonar.projectBaseDir=.
+            -Dsonar.sources=.
+            -Dsonar.language=py
+            -Dsonar.inclusions=app/MyAgent/**/*.py
             -Dsonar.python.version=3.12
 
       - name: Setup Node.js
